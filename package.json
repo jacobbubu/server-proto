@@ -1,0 +1,42 @@
+{
+  "name": "server-proto",
+  "version": "0.0.0",
+  "description": "A protocol independent server framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/*-test.coffee --tap --timeout=2",
+    "alltests": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacobbubu/server-proto.git"
+  },
+  "keywords": [
+    "api",
+    "server",
+    "prototype",
+    "framework"
+  ],
+  "author": "Rong Shen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jacobbubu/server-proto/issues"
+  },
+  "homepage": "https://github.com/jacobbubu/server-proto",
+  "dependencies": {
+    "async": "~0.2.10",
+    "optimist": "~0.6.0",
+    "xtend": "~2.1.2",
+    "cson": "~1.4.5",
+    "deep-equal": "~0.2.1",
+    "minilog": "~2.0.3"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-coffee": "~0.9.0",
+    "referee": "~1.0.2",
+    "tap": "~0.4.8",
+    "bustermove": "~0.4.1"
+  }
+}

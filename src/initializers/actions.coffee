@@ -8,17 +8,17 @@ actions = (api, cb) ->
     postProcessors: []
     map: {}
 
-  api.actions._start = (api, cb) ->
-    next cb
+  # api.actions._start = (api, cb) ->
+  #   next cb
 
-  api.actions._teardown = (api, cb) ->
-    next cb
+  # api.actions._stop = (api, cb) ->
+  #   next cb
 
-  api.actions.pre = ->
-    ;
+  # api.actions.pre = ->
+  #   ;
 
-  api.actions.post = ->
-    ;
+  # api.actions.post = ->
+  #   ;
 
   api.actions.loadActionFile = (file) ->
     actionBase = path.basename(file).split('.')[0]
@@ -49,17 +49,18 @@ actions = (api, cb) ->
             realPath =fs.readlinkSync fullFilePath
             loadFolder realPath
           else if stats.isFile()
-            [action, ext] = file.split('.')
-            if ext in ['js', '.coffee', '.litcoffee', '.coffee.md']
+            ext = path.extname file
+            action = path.basename file, ext
+            if ext in ['.js', '.coffee', '.litcoffee']
               requireKey = fullFilePath
               api.actions.loadActionFile requireKey
           else
             api.log.error file + 'is a type of file I cannot read'
 
-    [
-      path.resolve __dirname, '../actions/'
-      path.resolve api.project_root, 'actions/'
-    ].forEach loadFolder
+    uniquefolders = {}
+    uniquefolders[path.resolve __dirname, '../actions/'] = true
+    uniquefolders[path.resolve api.project_root, 'actions/'] = true
+    Object.keys(uniquefolders).forEach loadFolder
 
   next cb
 

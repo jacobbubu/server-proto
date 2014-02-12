@@ -10,11 +10,10 @@ logger = (api, cb) ->
 
   api.logger =
     _init: ->
-      api.logger._buildLogger api.config.configData.logger
-      api.config.on 'change', api.logger._configListener
+      api.logger._buildLogger api.config.logger
+      api.configObj.on 'change', api.logger._configListener
 
     _buildLogger: (config) ->
-
       try
         logger = Minilog (config.scope)
         Minilog.unpipe()
@@ -50,11 +49,11 @@ logger = (api, cb) ->
 
     _configListener: (data) ->
       newConfig = data.logger
-      if not (eql newConfig, api.config.configData.logger)
+      if not (eql newConfig, api.config.logger)
         api.logger._buildLogger newConfig
 
-    _teardown: (api, cb) ->
-      api.config.removeListener 'change', api.logger._configListener
+    _stop: (api, cb) ->
+      api.configObj.removeListener 'change', api.logger._configListener
       next cb
 
   api.logger._init()

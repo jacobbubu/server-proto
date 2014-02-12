@@ -1,50 +1,51 @@
-fs     = require 'fs'
-path   = require 'path'
-common = require './common'
-assert = require('referee').assert
-refute = require('referee').refute
-buster = require 'bustermove'
-CSON   = require 'cson'
+describe 'config-test', ->
+  os          = require 'os'
+  fs          = require 'fs'
+  path        = require 'path'
+  should      = require 'should'
+  async       = require 'async'
+  common      = require './common'
 
-server = null
-configItem = test_config_item: 0
-options =
-  config:
-    file: path.resolve __dirname, './init-config-test/config1.cson'
-    watch: true
+  options             = null
+  server              = null
+  apiObj              = null
+  configFile          = null
+  originalFileContent = null
+  test_config_item    = null
 
-buster.testCase 'batch()',
-  'setUp':(done) ->
-    common.commonSetUp.call @, ( ->
-      configItem.test_config_item = +new Date
-      fs.writeFileSync options.config.file, CSON.stringifySync configItem
-      server = new common.ServerProto
-      done()
-      ).bind @
-  'tearDown': (done) ->
-    common.commonTearDown.call @, ( ->
-      server = null
-      done()
-      ).bind @
+  before (done) ->
+    common.commonSetUp (err, res) ->
+      should.not.exist err
+      { options, server } = res
+      configFile = options.config.file
+      originalFileContent = fs.readFileSync configFile, {encoding: 'utf8'}
+      done err
 
-  'initialize config': (done) ->
+  after (done) ->
+    fs.writeFileSync configFile, originalFileContent, {encoding: 'utf8'}
+    common.commonTearDown (err) ->
+      should.not.exist err
+      done err
+
+  it 'initialize config', (done) ->
+    test_config_item = ('' + Math.random()).slice 2, 10
+    add = "config.test_config_item = '#{test_config_item}'"
+    fs.writeFileSync configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}
+
     server.start options, (err, api) ->
-      refute err
-      assert.defined api.config.configData.appName
-      assert.equals api.config.configData.test_config_item, configItem.test_config_item
-      server.stop()
-      done()
+      should.not.exist err
+      api.config.test_config_item.should.eql test_config_item
+      server.stop done
 
-  'change event': (done) ->
+  it 'change config file', (done) ->
     server.start options, (err, api) ->
-      refute err
-      api.config.on 'change', (data) ->
-        assert.defined api.config.configData.appName
-        assert.equals data.test_config_item, configItem.test_config_item
-        server.stop()
-        done()
+      should.not.exist err
+      api.configObj.on 'change', (data) ->
+        data.test_config_item.should.eql test_config_item
+        server.stop done
 
       setTimeout ->
-        configItem.test_config_item = +new Date
-        fs.writeFileSync options.config.file, CSON.stringifySync configItem
-      , 10
+        test_config_item = ('' + Math.random()).slice 2, 10
+        add = "config.test_config_item = '#{test_config_item}'"
+        fs.writeFileSync configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}
+      , 50

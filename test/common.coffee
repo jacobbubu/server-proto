@@ -1,8 +1,20 @@
-assert  = require('referee').assert
-refute  = require('referee').refute
+server      = new (require '../index')
+mkdirp      = require 'mkdirp'
+cp          = require 'cp'
+path        = require 'path'
 
-module.exports.ServerProto    = require '../index'
-module.exports.commonSetUp    = (done) ->
-  @timeout = 1000
+options =
+  config:
+    file: path.resolve __dirname, './tmp/config-tmp.coffee'
+    watch: true
+  project_root: path.resolve __dirname, '../lib'
+
+module.exports.commonSetUp = (done) ->
+  mkdirp __dirname + '/tmp', (err) ->
+    return done err if err?
+    cp __dirname + '/config.coffee', __dirname + '/tmp/config-tmp.coffee', (err) ->
+      return done err if err?
+      done null, { server: server, options: options}
+
+module.exports.commonTearDown = (done) ->
   done()
-module.exports.commonTearDown = (done) -> done()

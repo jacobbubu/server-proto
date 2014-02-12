@@ -7,7 +7,7 @@ hasFunc = require('./utils').hasFunc
 
 defaultOptions =
   config:
-    file: 'config.cson'
+    file: 'config.coffee'
     watch: true
   project_root: process.env.project_root ? (process.env.PROJECT_ROOT ? process.cwd())
 
@@ -39,8 +39,9 @@ class ServerProto
       if fs.existsSync folder
         fs.readdirSync(folder).sort().forEach (file) ->
           if file[0] isnt '.'
-            [initalizer, ext] = file.split('.')
-            if ext in ['js', '.coffee', '.litcoffee', '.coffee.md']
+            ext = path.extname file
+            initalizer = path.basename file, ext
+            if ext in ['.js', '.coffee', '.litcoffee']
               requireKey = path.join folder, file
               if require.cache[requireKey]?
                 delete require.cache[require.resolve requireKey]
@@ -51,12 +52,14 @@ class ServerProto
     orderedInitializers = {}
     [
       # 'utils'
-      'config'
+      'configObj'
       # 'pids'
       'logger'
       # 'exceptions'
-      # 'stats'
-      # 'redis'
+      'stats'
+      'redis'
+      'resque'
+      'tasks'
     ].forEach (i) ->
       orderedInitializers[i] = (cb) -> self.initalizers[i] self.api, cb
 
@@ -67,7 +70,7 @@ class ServerProto
           self.initalizers[method] self.api, cb
 
     orderedInitializers['_complete'] = () ->
-      self.appName = self.api.config.configData.appName
+      self.appName = self.api.config.appName
       self.api.initialized = true
       next cb, null, self.api
 
@@ -83,7 +86,7 @@ class ServerProto
             orderedStarters[name] = (cb) ->
               self.api[name]._start self.api, ->
                 self.api.log.debug "initializer '#{name}' started"
-                cb()
+                next cb
 
       orderedStarters['_complete'] =  ->
         self.api.log.info "'#{self.appName}' has been started"
@@ -106,17 +109,21 @@ class ServerProto
       self.api.log.warn 'shutting down open servers'
 
       orderedTeardowns = {}
-      ['config'].forEach (terdown) ->
-        if hasFunc self.api[terdown], '_teardown'
+      [
+        'tasks'
+        'resque'
+        'configObj'
+      ].forEach (terdown) ->
+        if hasFunc self.api[terdown], '_stop'
           do (name = terdown) ->
             orderedTeardowns[name] = (cb) ->
-              self.api[name]._teardown self.api, cb
+              self.api[name]._stop self.api, cb
 
       for terdown, obj of self.api
-        if hasFunc(obj, '_teardown') and not orderedTeardowns[terdown]?
+        if hasFunc(obj, '_stop') and not orderedTeardowns[terdown]?
           do (name = terdown) ->
             orderedTeardowns[name] = (cb) ->
-              self.api[name]._teardown self.api, cb
+              self.api[name]._stop self.api, cb
 
       orderedTeardowns['_complete'] =  ->
         self.api.log.info "'#{self.appName}' has been stopped"

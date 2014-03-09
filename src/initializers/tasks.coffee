@@ -26,7 +26,7 @@ tasks = (api, cb) ->
         next cb
 
     load: (fullFilePath) ->
-      self = @
+      self = api.tasks
 
       loadMessage = (loadedTaskName) ->
         api.log.debug 'task loaded:', loadedTaskName + ',', fullFilePath
@@ -40,7 +40,7 @@ tasks = (api, cb) ->
           loadMessage task.name
 
     jobWrapper: (taskName) ->
-      self = @
+      self = api.tasks
       task = api.tasks.tasks[taskName]
       plugins = task.plugins ? []
       pluginOptions = task.pluginOptions ? []
@@ -88,7 +88,7 @@ tasks = (api, cb) ->
         return true
 
     loadFolder: (taskPath) ->
-      self = @
+      self = api.tasks
       taskPath ?= path.resolve api.project_root, 'tasks'
       if fs.existsSync taskPath
         fs.readdirSync(taskPath).forEach (file) ->
@@ -110,15 +110,15 @@ tasks = (api, cb) ->
         api.log.debug 'no tasks folder found, skipping'
 
     enqueue: (taskName, params, queue, cb) ->
-      res = getParams.call @, taskName, params, queue, cb
+      res = getParams.call api.tasks, taskName, params, queue, cb
       api.resque.queue.enqueue res.queue, taskName, res.params, res.cb
 
     enqueueAt: (timestamp, taskName, params, queue, cb) ->
-      res = getParams.call @, taskName, params, queue, cb
+      res = getParams.call api.tasks, taskName, params, queue, cb
       api.resque.queue.enqueueAt timestamp, res.queue, taskName, res.params, res.cb
 
     enqueueIn: (time, taskName, params, queue, cb) ->
-      res = getParams.call @, taskName, params, queue, cb
+      res = getParams.call api.tasks, taskName, params, queue, cb
       api.resque.queue.enqueueIn time, res.queue, taskName, res.params, res.cb
 
     del: (q, taskName, args, count, cb) ->
@@ -128,7 +128,7 @@ tasks = (api, cb) ->
       api.resque.queue.delDelayed q, taskName, args, cb
 
     enqueueRecurrentJob: (taskName, cb) ->
-      self = @
+      self = api.tasks
       task = self.tasks[taskName]
       if task.frequency <= 0
         next cb
@@ -140,7 +140,7 @@ tasks = (api, cb) ->
               next cb
 
     enqueueAllRecurrentJobs: (cb) ->
-      self = @
+      self = api.tasks
       started = 0
       loadedTasks = []
       for taskName of self.tasks
@@ -158,7 +158,7 @@ tasks = (api, cb) ->
 
     stopRecurrentJob: (taskName, cb) ->
       # find the jobs in either the normal queue or delayed queues
-      self = @
+      self = api.tasks
       task = self.tasks[taskName]
       if task.frequency <= 0
         next cb
@@ -171,7 +171,7 @@ tasks = (api, cb) ->
             next cb, err, removedCount
 
     details: (cb) ->
-      self = @
+      self = api.tasks
       details = queues: {}
       api.resque.queue.queues (err, queues) ->
         if queues.length is 0

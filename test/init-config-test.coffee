@@ -30,12 +30,12 @@ describe 'config-test', ->
   it 'initialize config', (done) ->
     test_config_item = ('' + Math.random()).slice 2, 10
     add = "config.test_config_item = '#{test_config_item}'"
-    fs.writeFileSync configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}
-
-    server.start options, (err, api) ->
+    fs.writeFile configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}, (err) ->
       should.not.exist err
-      api.config.test_config_item.should.eql test_config_item
-      server.stop done
+      server.start options, (err, api) ->
+        should.not.exist err
+        api.config.test_config_item.should.eql test_config_item
+        server.stop done
 
   it 'change config file', (done) ->
     server.start options, (err, api) ->
@@ -47,5 +47,6 @@ describe 'config-test', ->
       setTimeout ->
         test_config_item = ('' + Math.random()).slice 2, 10
         add = "config.test_config_item = '#{test_config_item}'"
-        fs.writeFileSync configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}
-      , 50
+        fs.writeFile configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}, (err) ->
+          should.not.exist err
+      , 1000

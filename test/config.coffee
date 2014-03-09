@@ -1,6 +1,7 @@
 config = {}
 
 config.appName = 'server-proto-test'
+config.pid = '/tmp'
 
 config.logger =
   console:
@@ -13,7 +14,7 @@ config.redis =
   port: 6379
   password: null
   options: null
-  database: 0
+  database: 14
 
 config.tasks =
   # Should this node run a scheduler to promote delayed tasks?

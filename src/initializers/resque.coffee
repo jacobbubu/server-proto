@@ -75,8 +75,10 @@ resque = (api, cb) ->
               worker.on 'cleaning_worker', (worker, pid) ->        api.log.info  'resque cleaning old worker ', worker
               # worker.on('poll',            function(queue){              api.log('resque worker #'+(i+1)+' polling ' + queue, 'debug'); })
               worker.on 'job',             (queue, job) ->         api.log.debug 'resque worker #' + (i+1) + ' working job', queue, job
-              worker.on 'success',         (queue, job, result) -> api.log.info  'resque worker #' + (i+1) + ' job success', queue, { job: job, result: result }
-              worker.on 'error',           (queue, job, error) ->  api.log.error 'resque worker #' + (i+1) + ' job failed', queue, { job: job, error: error }
+              worker.on 'success',         (queue, job, result) ->
+                api.log.info  'resque worker #' + (i+1) + ' job success', queue, [job?.class, result]
+              worker.on 'error',           (queue, job, error) ->
+                api.log.error 'resque worker #' + (i+1) + ' job failed', queue, [job?.class, error]
               # worker.on('pause',           function(){                   api.log('resque worker #'+(i+1)+'  paused', 'debug'); })
 
               worker.workerCleanup()

@@ -53,8 +53,8 @@ class ServerProto
     [
       # 'utils'
       'configObj'
-      # 'pids'
       'logger'
+      'pids'
       # 'exceptions'
       'stats'
       'redis'
@@ -78,21 +78,37 @@ class ServerProto
 
   start: (options, cb) ->
     self = @
-    doStart = ->
+
+    doBeforeStart = (cb) ->
       orderedStarters = {}
       for starter, obj of self.api
-        if hasFunc(obj, '_start') and not orderedStarters[starter]?
+        if hasFunc(obj, '_beforeStart') and not orderedStarters[starter]?
           do (name = starter) ->
             orderedStarters[name] = (cb) ->
-              self.api[name]._start self.api, ->
-                self.api.log.debug "initializer '#{name}' started"
+              self.api[name]._beforeStart self.api, ->
+                self.api.log.debug "initializer '#{name}' beforeStart has been run"
                 next cb
 
       orderedStarters['_complete'] =  ->
-        self.api.log.info "'#{self.appName}' has been started"
-        self.api.running = true
-        next cb, null, self.api
+        next cb
       async.series orderedStarters
+
+    doStart = ->
+      doBeforeStart ->
+        orderedStarters = {}
+        for starter, obj of self.api
+          if hasFunc(obj, '_start') and not orderedStarters[starter]?
+            do (name = starter) ->
+              orderedStarters[name] = (cb) ->
+                self.api[name]._start self.api, ->
+                  self.api.log.debug "initializer '#{name}' started"
+                  next cb
+
+        orderedStarters['_complete'] =  ->
+          self.api.log.info "'#{self.appName}' has been started"
+          self.api.running = true
+          next cb, null, self.api
+        async.series orderedStarters
 
     if self.api.initialized
       doStart()
@@ -106,26 +122,27 @@ class ServerProto
       self.api.shuttingDown = true
       self.api.running = false
       self.api.initialized = false
-      self.api.log.warn 'shutting down open servers'
+      self.api.log.warn 'shutting down open servers and stopping running tasks'
 
       orderedTeardowns = {}
       [
         'tasks'
         'resque'
         'configObj'
-      ].forEach (terdown) ->
-        if hasFunc self.api[terdown], '_stop'
-          do (name = terdown) ->
+      ].forEach (stop) ->
+        if hasFunc self.api[stop], '_stop'
+          do (name = stop) ->
             orderedTeardowns[name] = (cb) ->
               self.api[name]._stop self.api, cb
 
-      for terdown, obj of self.api
-        if hasFunc(obj, '_stop') and not orderedTeardowns[terdown]?
-          do (name = terdown) ->
+      for stop, obj of self.api
+        if hasFunc(obj, '_stop') and not orderedTeardowns[stop]?
+          do (name = stop) ->
             orderedTeardowns[name] = (cb) ->
               self.api[name]._stop self.api, cb
 
       orderedTeardowns['_complete'] =  ->
+        self.api.pids.clearPidFile()
         self.api.log.info "'#{self.appName}' has been stopped"
         self.api.log.debug '***'
         delete self.api.shuttingDown
@@ -136,7 +153,7 @@ class ServerProto
     else if self.api.shuttingDown
       # double sigterm; ignore it
     else
-      self.api.log.info 'Cannot shut down (not running any servers)'
+      self.api.log.info 'cannot shut down (not running any servers)'
       next cb, null, self.api
 
 module.exports = ServerProto

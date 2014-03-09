@@ -9,13 +9,16 @@ extend         = require('../utils').extend
 logger = (api, cb) ->
 
   api.logger =
+    enabled: false
     _init: ->
-      api.logger._buildLogger api.config.logger
+      api.logger.enable()
       api.configObj.on 'change', api.logger._configListener
 
-    _buildLogger: (config) ->
+    enable: ->
+      return if api.logger.enabled
       try
-        logger = Minilog (config.scope)
+        config = api.config.logger
+        logger = Minilog config.scope
         Minilog.unpipe()
 
         if config.console?
@@ -39,6 +42,7 @@ logger = (api, cb) ->
 
           Minilog.pipe(myFilter).pipe stream
         api.log = logger
+        api.logger.enabled = true
       catch e
         message = 'Build api.log errors'
         if api.log?
@@ -46,6 +50,13 @@ logger = (api, cb) ->
         else
           console.error message, e
         process.exit 1
+
+    disable: ->
+      if api.logger.enabled
+        logger = Minilog()
+        Minilog.unpipe()
+        api.log = logger
+        api.logger.enabled = false
 
     _configListener: (data) ->
       newConfig = data.logger

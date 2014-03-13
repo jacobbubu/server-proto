@@ -11,26 +11,26 @@ resque = (api, cb) ->
     connectionDetails: if api.config.tasks.redis? then clone api.config.tasks.redis else {}
 
     _start: (api, cb) ->
-      self = @
+      self = api.resque
       self.startQueue ->
         self.startScheduler ->
           self.startWorkers ->
             next cb
 
     _stop: (api, cb) ->
-      self = @
+      self = api.resque
       self.stopScheduler ->
         self.stopWorkers ->
           self.queue.end ->
             next cb
 
     startQueue: (cb) ->
-      self = @
+      self = api.resque
       self.queue = new NR.queue { connection: self.connectionDetails }, api.tasks.jobs, ->
         next cb
 
     startScheduler: (cb) ->
-      self = @
+      self = api.resque
       if api.config.tasks.scheduler
         self.scheduler = new NR.scheduler { connection: self.connectionDetails, timeout: api.config.tasks.timeout }, ->
           self.scheduler.on 'start',                            -> api.log.info  'resque scheduler started'
@@ -45,7 +45,7 @@ resque = (api, cb) ->
         next cb
 
     stopScheduler: (cb) ->
-      self = @
+      self = api.resque
       if not self.scheduler?
         next cb
       else
@@ -54,7 +54,7 @@ resque = (api, cb) ->
           next cb
 
     startWorkers: (cb) ->
-      self = @
+      self = api.resque
       i = 0
       started = 0
       if not api.config.tasks.queues? or api.config.tasks.queues.length is 0
@@ -91,7 +91,7 @@ resque = (api, cb) ->
           i++
 
     stopWorkers: (cb) ->
-      self = @
+      self = api.resque
       if self.workers.length is 0
         next cb
       else

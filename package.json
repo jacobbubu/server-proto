@@ -31,7 +31,8 @@
     "minilog": "~2.0.3",
     "node-resque": "~0.3.5",
     "redis": "~0.10.0",
-    "replify": "~1.2.0"
+    "replify": "~1.2.0",
+    "q": "~1.0.1"
   },
   "devDependencies": {
     "grunt": "~0.4.2",

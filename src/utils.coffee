@@ -31,6 +31,6 @@ module.exports =
       false
 
   clone: clone
-
   extend: require 'xtend'
-  eql:  require 'deep-equal'
+  eql:    require 'deep-equal'
+  Q:      require 'q'

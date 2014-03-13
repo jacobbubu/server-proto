@@ -1,7 +1,7 @@
 replify = require('replify')
-next    = require('../utils').next
 
 repl = (api, cb) ->
+  { next } = api.utils
 
   api.repl = {}
   api.repl._start = (api, cb) ->

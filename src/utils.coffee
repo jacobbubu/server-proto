@@ -30,7 +30,21 @@ module.exports =
     else
       false
 
-  clone: clone
-  extend: require 'xtend'
-  eql:    require 'deep-equal'
-  Q:      require 'q'
+  listen: () ->
+    args = Array.prototype.slice.call arguments
+    server = args.splice(0, 1)[0]
+    cb = args.slice(-1)[0] ? ->
+
+    server.once 'error', (err) ->
+      if err.code? and err.code is 'EADDRINUSE'
+        cb err
+
+    server.listen.apply server, args
+
+  clone:          clone
+  extend:         require 'xtend'
+  eql:            require 'deep-equal'
+  Q:              require 'q'
+  uuid:           (require 'uuid').v4
+  humanInterval:  require 'human-interval'
+  async:          require 'async'

@@ -1,8 +1,8 @@
 redisPackage = require 'redis'
-next         = require('../utils').next
 
 redis = (api, cb) ->
 
+  { next } = api.utils
   ### server-proto will create the following stores within your redis database:
 
   ** Keys **

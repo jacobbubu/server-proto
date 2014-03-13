@@ -2,11 +2,10 @@ fs             = require 'fs'
 path           = require 'path'
 Minilog        = require 'Minilog'
 ConsoleBackend = require('Minilog').backends.console
-next           = require('../utils').next
-eql            = require('../utils').eql
-extend         = require('../utils').extend
 
 logger = (api, cb) ->
+
+  { next, eql, extend } = api.utils
 
   api.logger =
     enabled: false

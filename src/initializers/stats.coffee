@@ -1,7 +1,6 @@
-next = require('../utils').next
-clone = require('../utils').clone
-
 stats = (api, cb) ->
+  { next, clone } = api.utils
+
   api.stats = {}
   api.stats.timer = null
   api.stats.pendingIncrements = {}

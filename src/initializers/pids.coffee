@@ -3,6 +3,7 @@ path = require 'path'
 next = require('../utils').next
 
 pids = (api, cb) ->
+  { next } = api.utils
 
   api.pids = {}
   api.pids.pid = process.pid

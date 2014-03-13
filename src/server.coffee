@@ -49,7 +49,7 @@ class ServerProto
     #  run initializers in order
     orderedInitializers = {}
     [
-      # 'utils'
+      'utils'
       'configObj'
       'logger'
       'pids'

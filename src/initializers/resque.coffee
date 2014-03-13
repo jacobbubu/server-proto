@@ -1,9 +1,8 @@
 os    = require 'os'
 NR    = require 'node-resque'
-next  = require('../utils').next
-clone = require('../utils').clone
 
 resque = (api, cb) ->
+  { next, clone } = api.utils
   api.resque =
     queue: null
     workers: []

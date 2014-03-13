@@ -1,6 +1,5 @@
 fs   = require 'fs'
 path = require 'path'
-next = require('../utils').next
 
 getParams = (taskName, params, queue, cb) ->
   if typeof queue is 'function'
@@ -13,6 +12,7 @@ getParams = (taskName, params, queue, cb) ->
   { params, queue, cb }
 
 tasks = (api, cb) ->
+  { next }  = api.utils
 
   api.tasks =
     tasks: {}

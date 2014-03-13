@@ -4,10 +4,8 @@ fs           = require 'fs'
 path         = require 'path'
 EventEmitter = require('events').EventEmitter
 inherits     = require('util').inherits
-eql          = require('../utils').eql
-extend       = require('../utils').extend
-next         = require('../utils').next
 
+eql = null; extend = null; next = null
 period = 3000
 
 class ConfigObj
@@ -39,16 +37,16 @@ ConfigObj.prototype.loadConfig = (api, file, cb) ->
         try
           config = require(file).config
         catch e
-          next cb, new Error "#{file} is not a valid config file-" + e
+          next cb, "#{file} is not a valid config file-" + e
           # skip reading bad file
           self.mtime = stats.mtime.getTime()
           return
         self.mtime = stats.mtime.getTime()
         next cb, null, extend(api._defaultConfig, config)
       else
-        next cb, new Error "#{file} is not a valid config file"
+        next cb, "#{file} is not a valid config file"
   else
-    next cb, new Error "Config file type should be in #{self.fileTypes}"
+    next cb, "Config file type should be in #{self.fileTypes}"
 
 ConfigObj.prototype.periodicCheck = (api) ->
   self = @
@@ -83,16 +81,16 @@ ConfigObj.prototype._stop = (api, cb) ->
   next cb
 
 configObj = (api, cb) ->
+  { eql, extend, next } = api.utils
+
   file = path.resolve api.project_root, api._startingOptions.config.file
   if not fs.existsSync file
-    throw new Error "No config file found - #{file}"
-    proces.exit 1
+    return next cb, "No config file found - #{file}"
 
   api.configObj = new ConfigObj api
   api.configObj.loadConfig api, api.configObj.file, (err, config) ->
     if err?
-      api.log.error 'config file loading failed', err
-      process.exit 1
+      return next cb, 'config file loading failed', err
     else
       if api.configObj.options.watch
         api.configObj.watcherId = setTimeout ->

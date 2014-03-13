@@ -1,24 +1,13 @@
 fs             = require 'fs'
 path           = require 'path'
-next           = require('../utils').next
 
 actions = (api, cb) ->
+  { next } = api.utils
+
   api.actions =
     preProcessors: []
     postProcessors: []
     map: {}
-
-  # api.actions._start = (api, cb) ->
-  #   next cb
-
-  # api.actions._stop = (api, cb) ->
-  #   next cb
-
-  # api.actions.pre = ->
-  #   ;
-
-  # api.actions.post = ->
-  #   ;
 
   api.actions.loadActionFile = (file) ->
     actionBase = path.basename(file).split('.')[0]

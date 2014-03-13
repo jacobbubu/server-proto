@@ -3,6 +3,8 @@ path      = require 'path'
 { next }  = require '../utils'
 
 streams = (api, cb) ->
+  { next }  = api.utils
+
   api.streams = {}
   api.streams.map = {}
 

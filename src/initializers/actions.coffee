@@ -22,19 +22,23 @@ actions = (api, cb) ->
 
   api.actions.loadActionFile = (file) ->
     actionBase = path.basename(file).split('.')[0]
-    for key, innerFunc of require file
-      if typeof innerFunc is 'function'
-        actionName = [actionBase, key].join '.'
-        if api.actions.map[actionName]?
-          api.log.warn "Action (#{actionName}) already exist"
-        else
-          do (name = actionName, func = innerFunc) ->
-            api.actions.map[name] = ->
-              try
-                func.apply @, arguments
-              catch e
-                [..., cb] = arguments
-                cb e if typeof cb is 'function'
+    try
+      for key, innerFunc of require file
+        if typeof innerFunc is 'function'
+          actionName = [actionBase, key].join '.'
+          if api.actions.map[actionName]?
+            api.log.warn "Action (#{actionName}) already exist"
+          else
+            do (name = actionName, func = innerFunc) ->
+              api.actions.map[name] = ->
+                try
+                  func.apply @, arguments
+                catch e
+                  [..., cb] = arguments
+                  cb e if typeof cb is 'function'
+    catch e
+      api.log.error 'loading action file errors', e, file
+      cb e
 
   api.actions.loadAllActions = do ->
 
@@ -50,7 +54,6 @@ actions = (api, cb) ->
             loadFolder realPath
           else if stats.isFile()
             ext = path.extname file
-            action = path.basename file, ext
             if ext in ['.js', '.coffee', '.litcoffee']
               requireKey = fullFilePath
               api.actions.loadActionFile requireKey

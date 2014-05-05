@@ -2,7 +2,7 @@ fs             = require 'fs'
 path           = require 'path'
 
 actions = (api, cb) ->
-  { next } = api.utils
+  { next, _, errStack } = api.utils
 
   api.actions =
     preProcessors: []
@@ -26,10 +26,10 @@ actions = (api, cb) ->
                   [..., cb] = arguments
                   cb e if typeof cb is 'function'
     catch e
-      api.log.error 'loading action file errors', e, file
-      cb e
+      api.log.error 'loading action file errors', file
+      throw e
 
-  api.actions.loadAllActions = do ->
+  api.actions.loadAllActions = ->
 
     loadFolder = (folder) ->
       if fs.existsSync folder
@@ -49,11 +49,15 @@ actions = (api, cb) ->
           else
             api.log.error file + 'is a type of file I cannot read'
 
-    uniquefolders = {}
-    uniquefolders[path.resolve __dirname, '../actions/'] = true
-    uniquefolders[path.resolve api.project_root, 'actions/'] = true
-    Object.keys(uniquefolders).forEach loadFolder
+    _.uniq([
+      path.resolve __dirname, '../actions/'
+      path.resolve api.project_root, 'actions/'
+    ]).forEach loadFolder
 
-  next cb
+  try
+    api.actions.loadAllActions()
+    next cb
+  catch e
+    next cb, errStack e
 
 module.exports.actions = actions

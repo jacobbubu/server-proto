@@ -70,11 +70,6 @@ class ServerProto
           .catch (err) ->
             cb err
 
-    # orderedInitializers['_complete'] = () ->
-    #   self.appName = self.api.config.appName
-    #   self.api.initialized = true
-    #   next cb, null, self.api
-
     async.series orderedInitializers
     , (err) ->
       if err?

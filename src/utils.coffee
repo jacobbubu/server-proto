@@ -42,9 +42,11 @@ module.exports =
     server.listen.apply server, args
 
   clone:          clone
+  errStack:       (err) -> if err?.stack? then err.stack else err
   extend:         require 'xtend'
   eql:            require 'deep-equal'
   Q:              require 'q'
   uuid:           (require 'uuid').v4
   humanInterval:  require 'human-interval'
   async:          require 'async'
+  _:              require 'lodash'

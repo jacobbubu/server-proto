@@ -3,7 +3,7 @@ path      = require 'path'
 { next }  = require '../utils'
 
 streams = (api, cb) ->
-  { next }  = api.utils
+  { next, _ }  = api.utils
 
   api.streams = {}
   api.streams.map = {}
@@ -46,10 +46,10 @@ streams = (api, cb) ->
           else
             api.log.error file + 'is a type of file I cannot read'
 
-    uniquefolders = {}
-    uniquefolders[path.resolve __dirname, '../streams/'] = true
-    uniquefolders[path.resolve api.project_root, 'streams/'] = true
-    Object.keys(uniquefolders).forEach loadFolder
+    _.uniq([
+      path.resolve __dirname, '../streams/'
+      path.resolve api.project_root, 'streams/'
+    ]).forEach loadFolder
 
   next cb
 

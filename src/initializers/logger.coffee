@@ -1,7 +1,7 @@
 fs             = require 'fs'
 path           = require 'path'
-Minilog        = require 'Minilog'
-ConsoleBackend = require('Minilog').backends.console
+Minilog        = require 'minilog'
+ConsoleBackend = require('minilog').backends.console
 
 logger = (api, cb) ->
 

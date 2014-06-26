@@ -20,6 +20,10 @@ clone = (obj) ->
 
   return newInstance
 
+pad2 = (v) ->
+  v ?= ''
+  ('00' + v).slice -2
+
 module.exports =
   next: (cb, err, res) ->
     cb err, res if typeof cb is 'function'
@@ -40,6 +44,17 @@ module.exports =
         cb err
 
     server.listen.apply server, args
+
+  sqlDateTime: (time) ->
+    time = new Date() if not time?
+    dateStr =
+      pad2(time.getFullYear()) +
+      '-' + pad2(1 + time.getMonth()) +
+      '-' + pad2(time.getDate()) +
+      ' ' + pad2(time.getHours()) +
+      ':' + pad2(time.getMinutes()) +
+      ':' + pad2(time.getSeconds());
+    dateStr
 
   clone:          clone
   errStack:       (err) -> if err?.stack? then err.stack else err

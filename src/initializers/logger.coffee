@@ -5,7 +5,12 @@ ConsoleBackend = require('minilog').backends.console
 
 logger = (api, cb) ->
 
-  { next, eql, extend } = api.utils
+  { next, eql, extend, sqlDateTime } = api.utils
+
+  ConsoleBackend.write = ->
+    args = Array.prototype.slice.call arguments
+    args.unshift sqlDateTime()
+    console.log.apply console, args
 
   api.logger =
     enabled: false
@@ -35,7 +40,7 @@ logger = (api, cb) ->
           options = extend { 'filter-name': '.*', 'filter-level': 'debug' }, config.file
           myFilter = new Minilog.Filter()
           myFilter.deny (new RegExp options['filter-name']), options['filter-level']
-          stream = fs.createWriteStream path.resolve(api.project_root, config.file)
+          stream = fs.createWriteStream path.resolve(api.project_root, config.file.logFile)
           stream.on 'error', (err) ->
             api.log.error 'Write log file errors', err if api.log?
 

@@ -1,6 +1,6 @@
 {
   "name": "server-proto",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A protocol independent server framework",
   "main": "index.js",
   "scripts": {

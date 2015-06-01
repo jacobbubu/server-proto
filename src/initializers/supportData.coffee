@@ -21,6 +21,9 @@ supportData = (api, cb) ->
   api.supportData.getData = (api, key) ->
     api.supportData._store[key]?.data
 
+  api.supportData.getObject = (api, key) ->
+    api.supportData._store[key]
+
   api.supportData.periodicCheck = ->
     setTimeout ->
       keys = Object.keys api.supportData._store
@@ -75,7 +78,7 @@ supportData = (api, cb) ->
             loadFolder realPath
           else if stats.isFile()
             ext = path.extname file
-            if ext in ['.js', '.coffee', '.litcoffee']
+            if ext in ['.js', '.coffee', '.litcoffee', '.json']
               api.supportData.loadDataFile fullFilePath, stats
           else
             api.log.error file + 'is a type of file I cannot read'

@@ -60,4 +60,4 @@ actions = (api, cb) ->
   catch e
     next cb, errStack e
 
-module.exports.actions = actions
+exports.actions = actions

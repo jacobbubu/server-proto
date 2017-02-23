@@ -53,4 +53,4 @@ streams = (api, cb) ->
 
   next cb
 
-module.exports.streams = streams
+exports.streams = streams

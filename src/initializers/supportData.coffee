@@ -98,4 +98,4 @@ supportData = (api, cb) ->
   catch e
     next cb, errStack e
 
-module.exports.supportData = supportData
+exports.supportData = supportData

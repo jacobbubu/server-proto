@@ -7,7 +7,7 @@ options =
   config:
     file: path.resolve __dirname, './tmp/config-tmp.coffee'
     watch: true
-  project_root: path.resolve __dirname, '../lib'
+  project_root: __dirname
 
 module.exports.commonSetUp = (done) ->
   mkdirp __dirname + '/tmp', (err) ->

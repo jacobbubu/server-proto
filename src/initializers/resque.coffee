@@ -3,11 +3,17 @@ NR    = require 'node-resque'
 
 resque = (api, cb) ->
   { next, clone } = api.utils
+
+  connectionDetails = api.config.tasks?.redis ? {}
+  if !(connectionDetails.host? and connectionDetails.port?)
+    api.log.debug 'Using default redis client'
+    connectionDetails.redis = api.redis.client
+
   api.resque =
     queue: null
     workers: []
     scheduler: null
-    connectionDetails: if api.config.tasks.redis? then clone api.config.tasks.redis else {}
+    connectionDetails: connectionDetails
 
     _start: (api, cb) ->
       self = api.resque
@@ -25,21 +31,27 @@ resque = (api, cb) ->
 
     startQueue: (cb) ->
       self = api.resque
-      self.queue = new NR.queue { connection: self.connectionDetails }, api.tasks.jobs, ->
+      self.queue = new NR.queue { connection: connectionDetails }, api.tasks.jobs
+      self.queue.on 'error', (err) -> next cb err
+      self.queue.connect ->
         next cb
 
     startScheduler: (cb) ->
       self = api.resque
       if api.config.tasks.scheduler
-        self.scheduler = new NR.scheduler { connection: self.connectionDetails, timeout: api.config.tasks.timeout }, ->
-          self.scheduler.on 'start',                            -> api.log.info  'resque scheduler started'
-          self.scheduler.on 'end',                              -> api.log.info  'resque scheduler ended'
-          self.scheduler.on 'working_timestamp',    (timestamp) -> api.log.debug 'resque scheduler working timestamp', timestamp
-          self.scheduler.on 'transferred_job', (timestamp, job) -> api.log.debug 'resque scheduler enqueuing job', timestamp, job
+        self.scheduler = new NR.scheduler { connection: connectionDetails, timeout: api.config.tasks.timeout }
+        self.scheduler.on 'start',                            -> api.log.info 'resque scheduler started'
+        self.scheduler.on 'end',                              -> api.log.info 'resque scheduler ended'
+        self.scheduler.on 'pool',                             -> api.log.info 'resque scheduler pooling'
+        self.scheduler.on 'master',                   (state) -> api.log.info 'resque scheduler master'
+        self.scheduler.on 'error',                    (error) -> api.log.info 'resque scheduler errors', error
+
+        self.scheduler.on 'working_timestamp',    (timestamp) -> api.log.debug 'resque scheduler working timestamp', timestamp
+        self.scheduler.on 'transferred_job', (timestamp, job) -> api.log.debug 'resque scheduler enqueuing job', timestamp, job
           # self.scheduler.on 'poll',                            -> api.log.debug 'resque scheduler polling'
+        self.scheduler.connect ->
           self.scheduler.start()
-          process.nextTick ->
-            next cb
+          next cb
       else
         next cb
 
@@ -64,22 +76,24 @@ resque = (api, cb) ->
             timeout = api.config.tasks.timeout
             name = os.hostname() + ':' + process.pid + '+' + (i+1)
             worker = new NR.worker {
-              connection: self.connectionDetails
+              connection: connectionDetails
               name: name
               queues: api.config.tasks.queues[i]
               timeout: timeout
-            }, api.tasks.jobs, ->
-              worker.on 'start',           ->                      api.log.info  'resque worker #' + (i+1) + ' started (queues: ' + worker.options.queues + ')'
-              worker.on 'end',             ->                      api.log.info  'resque worker #' + (i+1) + ' ended'
-              worker.on 'cleaning_worker', (worker, pid) ->        api.log.info  'resque cleaning old worker ', worker
-              # worker.on('poll',            function(queue){              api.log('resque worker #'+(i+1)+' polling ' + queue, 'debug'); })
-              worker.on 'job',             (queue, job) ->         api.log.debug 'resque worker #' + (i+1) + ' working job', queue, job
-              worker.on 'success',         (queue, job, result) ->
-                api.log.info  'resque worker #' + (i+1) + ' job success', queue, [job?.class, result]
-              worker.on 'error',           (queue, job, error) ->
-                api.log.error 'resque worker #' + (i+1) + ' job failed', queue, [job?.class, error]
-              # worker.on('pause',           function(){                   api.log('resque worker #'+(i+1)+'  paused', 'debug'); })
+            }, api.tasks.jobs
 
+            worker.on 'start',           ->                      api.log.info  'resque worker #' + (i+1) + ' started (queues: ' + worker.options.queues + ')'
+            worker.on 'end',             ->                      api.log.info  'resque worker #' + (i+1) + ' ended'
+            worker.on 'cleaning_worker', (worker, pid) ->        api.log.info  'resque cleaning old worker ', worker
+            # worker.on('poll',            function(queue){              api.log('resque worker #'+(i+1)+' polling ' + queue, 'debug'); })
+            worker.on 'job',             (queue, job) ->         api.log.debug 'resque worker #' + (i+1) + ' working job', queue, job
+            worker.on 'success',         (queue, job, result) ->
+              api.log.info  'resque worker #' + (i+1) + ' job success', queue, [job?.class, result]
+            worker.on 'error',           (queue, job, error) ->
+              api.log.error 'resque worker #' + (i+1) + ' job failed', queue, [job?.class, error]
+            # worker.on('pause',           function(){                   api.log('resque worker #'+(i+1)+'  paused', 'debug'); })
+
+            worker.connect ->
               worker.workerCleanup()
               worker.start()
               self.workers[i] = worker

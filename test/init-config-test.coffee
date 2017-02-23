@@ -28,7 +28,7 @@ describe 'config-test', ->
       done err
 
   it 'initialize config', (done) ->
-    test_config_item = ('' + Math.random()).slice 2, 10
+    test_config_item = ('' + Math.random())[2..10]
     add = "config.test_config_item = '#{test_config_item}'"
     fs.writeFile configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}, (err) ->
       should.not.exist err
@@ -45,8 +45,11 @@ describe 'config-test', ->
         server.stop done
 
       setTimeout ->
-        test_config_item = ('' + Math.random()).slice 2, 10
+        test_config_item = ('' + Math.random())[2..10]
         add = "config.test_config_item = '#{test_config_item}'"
-        fs.writeFile configFile, originalFileContent + os.EOL + add, {encoding: 'utf8'}, (err) ->
+        fs.writeFile configFile,
+         originalFileContent + os.EOL + add,
+         {encoding: 'utf8'},
+         (err) ->
           should.not.exist err
       , 1000

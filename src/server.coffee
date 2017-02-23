@@ -27,10 +27,13 @@ class ServerProto
     self.api.project_root = self.startingOptions.project_root
     self.api._defaultConfig = require './default-config'
 
+    stockedFolder = path.resolve __dirname, 'initializers/'
+    appFolder = path.resolve self.api.project_root, 'initializers/'
     initializerFolders = [
-      __dirname + '/initializers/'
-      path.resolve self.api.project_root, 'initializers/'
+      stockedFolder
     ]
+    if stockedFolder isnt appFolder
+      initializerFolders.push appFolder
 
     initializerMethods = []
     for folder in initializerFolders
@@ -59,19 +62,20 @@ class ServerProto
       'resque'
       'tasks'
     ].forEach (i) ->
-      orderedInitializers[i] = (cb) -> self.initalizers[i] self.api, cb
+      orderedInitializers[i] = (cb) ->
+        self.initalizers[i] self.api, cb
 
     initializerMethods.forEach (method) ->
       if typeof orderedInitializers[method] isnt 'function'
         orderedInitializers[method] = (cb) ->
-          Q.nfcall self.initalizers[method], self.api
-          .then ->
-            cb()
-          .catch (err) ->
-            cb err
+          try
+            self.initalizers[method] self.api, (err, res) ->
+              return cb err if err?
+              next cb null, res
+          catch e
+            next cb e
 
-    async.series orderedInitializers
-    , (err) ->
+    async.series orderedInitializers, (err) ->
       if err?
         next cb, err
       else
@@ -103,32 +107,29 @@ class ServerProto
           next cb
 
     doStart = (cb)->
-      doBeforeStart (err) ->
-        if err?
-          next cb, err
-        else
-          orderedStarters = {}
-          for starter, obj of self.api
-            if hasFunc(obj, '_start') and not orderedStarters[starter]?
-              do (name = starter) ->
-                orderedStarters[name] = (cb) ->
-                  Q.nfcall self.api[name]._start, self.api
-                  .then ->
-                    self.api.log.debug "initializer '#{name}' started"
-                    cb()
-                  .catch (err) ->
-                    cb err
+        orderedStarters = {}
+        for starter, obj of self.api
+          if hasFunc(obj, '_start') and not orderedStarters[starter]?
+            do (name = starter) ->
+              orderedStarters[name] = (cb) ->
+                self.api.log.debug "initializer '#{name}' is starting..."
+                Q.nfcall self.api[name]._start, self.api
+                .then ->
+                  self.api.log.debug "initializer '#{name}' started"
+                  cb()
+                .catch (err) ->
+                  cb err
 
-          async.series orderedStarters
-          , (err) ->
-            if err?
-              next cb, err
-            else
-              self.api.log.info "'#{self.appName}' has been started"
-              self.api.running = true
-              if process.send?
-                process.send { name: self.api.config.appName, status: 'started' }
-              next cb, null, self.api
+        async.series orderedStarters
+        , (err) ->
+          if err?
+            next cb, err
+          else
+            self.api.log.info "'#{self.appName}' has been started"
+            self.api.running = true
+            if process.send?
+              process.send { name: self.api.config.appName, status: 'started' }
+            next cb, null, self.api
 
     if self.api.initialized
       doStart cb

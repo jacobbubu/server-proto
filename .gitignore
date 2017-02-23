@@ -7,15 +7,3 @@ test/tmp/
 server-proto.sublime-workspace
 npm-debug.log
 *.map
-/lib/initializers/actions.js
-/lib/initializers/configObj.js
-/lib/initializers/logger.js
-/lib/initializers/pids.js
-/lib/initializers/redis.js
-/lib/initializers/resque.js
-/lib/initializers/stats.js
-/lib/initializers/streams.js
-/lib/initializers/supportData.js
-/lib/initializers/tasks.js
-/lib/server.js
-/lib/utils.js

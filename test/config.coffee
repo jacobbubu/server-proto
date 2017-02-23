@@ -9,12 +9,12 @@ config.logger =
     'filter-name': '.*'
     'filter-level': 'error'
 
-config.redis =
-  host: '127.0.0.1'
-  port: 6379
-  password: null
-  options: null
-  database: 14
+# config.redis =
+#   host: '127.0.0.1'
+#   port: 6379
+#   password: null
+#   options: null
+#   database: 14
 
 config.tasks =
   # Should this node run a scheduler to promote delayed tasks?
@@ -26,7 +26,7 @@ config.tasks =
   # how long to sleep between jobs / scheduler checks
   timeout: 1000
   # What redis server should we connect to for tasks / delayed jobs?
-  redis: config.redis
+  # redis: config.redis
 
 config.stats =
   # how often should the server write its stats to redis?

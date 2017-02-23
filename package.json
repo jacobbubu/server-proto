@@ -1,6 +1,6 @@
 {
   "name": "server-proto",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A protocol independent server framework",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "bugs": {
     "url": "https://github.com/jacobbubu/server-proto/issues"
   },
+  "files": ["lib"],
   "homepage": "https://github.com/jacobbubu/server-proto",
   "dependencies": {
     "coffee-script": "^1.12.4",
